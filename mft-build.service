@@ -1,0 +1,10 @@
+[Unit]
+Description=Service to build the Nvidia MFT toolkit
+
+[Service]
+Type=oneshot
+ExecStart=/bin/build-mft.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
