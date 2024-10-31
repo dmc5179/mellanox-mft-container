@@ -54,10 +54,10 @@ spec:
         lifecycle:
           postStart:
             exec:
-              command: ["modprobe", "-v", "-a" , "simple-kmod", "simple-procfs-kmod"]
+              command: ["modprobe", "-v", "-a" , "mst_pci", "mst_pciconf"]
           preStop:
             exec:
-              command: ["modprobe", "-r", "-a" , "simple-kmod", "simple-procfs-kmod"]
+              command: ["modprobe", "-r", "-a" , "mst_pci", "mst_pciconf"]
         securityContext:
           privileged: true
       nodeSelector:
