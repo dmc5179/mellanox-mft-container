@@ -1,12 +1,12 @@
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: simple-kmod-driver-container
+  name: mst-driver-container
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: simple-kmod-driver-container
+  name: mst-driver-container
 rules:
 - apiGroups:
   - security.openshift.io
@@ -20,35 +20,35 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: simple-kmod-driver-container
+  name: mst-driver-container
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: simple-kmod-driver-container
+  name: mst-driver-container
 subjects:
 - kind: ServiceAccount
-  name: simple-kmod-driver-container
+  name: mst-driver-container
 userNames:
-- system:serviceaccount:simple-kmod-demo:simple-kmod-driver-container
+- system:serviceaccount:mst-driver:mst-driver-container
 ---
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: simple-kmod-driver-container
+  name: mst-driver-container
 spec:
   selector:
     matchLabels:
-      app: simple-kmod-driver-container
+      app: mst-driver-container
   template:
     metadata:
       labels:
-        app: simple-kmod-driver-container
+        app: mst-driver-container
     spec:
-      serviceAccount: simple-kmod-driver-container
-      serviceAccountName: simple-kmod-driver-container
+      serviceAccount: mst-driver-container
+      serviceAccountName: mst-driver-container
       containers:
-      - image: image-registry.openshift-image-registry.svc:5000/simple-kmod-demo/simple-kmod-driver-container:demo
-        name: simple-kmod-driver-container
+      - image: image-registry.openshift-image-registry.svc:5000/mst-driver/mst-driver-container:demo
+        name: mst-driver-container
         imagePullPolicy: Always
         command: [sleep, infinity]
         lifecycle:

@@ -2,18 +2,18 @@ apiVersion: image.openshift.io/v1
 kind: ImageStream
 metadata:
   labels:
-    app: simple-kmod-driver-container
-  name: simple-kmod-driver-container
-  namespace: simple-kmod-demo
+    app: mst-driver-container
+  name: mst-driver-container
+  namespace: mst-driver
 spec: {}
 ---
 apiVersion: build.openshift.io/v1
 kind: BuildConfig
 metadata:
   labels:
-    app: simple-kmod-driver-build
-  name: simple-kmod-driver-build
-  namespace: simple-kmod-demo
+    app: mst-driver-build
+  name: mst-driver-build
+  namespace: mst-driver
 spec:
   nodeSelector:
     node-role.kubernetes.io/worker: ""
@@ -30,21 +30,26 @@ spec:
 
       WORKDIR /build/
 
-      RUN git clone https://github.com/openshift-psap/simple-kmod.git
+      RUN curl -LS 'https://www.mellanox.com/downloads/MFT/mft-4.29.0-131-x86_64-rpm.tgz' -o /build/mft-4.29.0-131-x86_64-rpm.tgz
 
-      WORKDIR /build/simple-kmod
+      RUN tar -xzf mft-4.29.0-131-x86_64-rpm.tgz
 
-      RUN make all install KVER=${KVER}
+      WORKDIR /build/mft-4.29.0-131-x86_64-rpm
 
-      FROM registry.redhat.io/ubi8/ubi-minimal
+      RUN /build/mft-4.29.0-131-x86_64-rpm/install.sh
+
+      RUN find /lib/modules/${KVER}/ -name "mst*.ko*"
+
+      FROM registry.redhat.io/ubi9/ubi-minimal
 
       ARG KVER
 
       # Required for installing `modprobe`
-      RUN microdnf install kmod
+      RUN microdnf -y install kmod
 
-      COPY --from=builder /lib/modules/${KVER}/simple-kmod.ko /lib/modules/${KVER}/
-      COPY --from=builder /lib/modules/${KVER}/simple-procfs-kmod.ko /lib/modules/${KVER}/
+      COPY --from=builder /lib/modules/${KVER}/extra/kernel-mft/mst_pci.ko /lib/modules/${KVER}/
+      COPY --from=builder /lib/modules/${KVER}/extra/kernel-mft/mst_pciconf.ko /lib/modules/${KVER}/
+
       RUN depmod ${KVER}
   strategy:
     dockerStrategy:
@@ -53,10 +58,10 @@ spec:
           value: DEMO
           # $ oc adm release info quay.io/openshift-release-dev/ocp-release:<cluster version>-x86_64 --image-for=driver-toolkit
         - name: DTK
-          value: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:34864ccd2f4b6e385705a730864c04a40908e57acede44457a783d739e377cae
+          value: DTK_IMAGE
         - name: KVER
-          value: 4.18.0-372.26.1.el8_6.x86_64
+          value: KERNEL_VERSION
   output:
     to:
       kind: ImageStreamTag
-      name: simple-kmod-driver-container:demo
+      name: mst-driver-container:demo
